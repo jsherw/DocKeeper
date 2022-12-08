@@ -5,11 +5,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Scanner;
 
-/**
- * @author James Sherwood
- * Object class to hold the program's version number
- */
-public class UserInfo implements Serializable {
+public class UserInfo implements Serializable{
     private final double versionNum = 0.2;
     private final String group = "Team Gamma";
     private String myUserName;
@@ -30,6 +26,7 @@ public class UserInfo implements Serializable {
 
     /**
      * @author James Sherwood
+     * Method: Check for valid user identity, and appropriate level of access in the program.
      * @return true if username & password match
      * @throws FileNotFoundException Unknown file location
      */
@@ -38,13 +35,13 @@ public class UserInfo implements Serializable {
         Scanner scnr = new Scanner(f);
 
         while(scnr.hasNext()){
-           String currLine = scnr.nextLine();
-            //check for admin, admin names are stored with a prepended '*' character.
+            String currLine = scnr.nextLine();
+            //check for admin-level access. Admin names are stored with a prepended '*' character.
             if(currLine.equals("*" + getMyUserName() + getMyEmail())  ) {
                 setIsAdmin();
                 scnr.close();
                 return true;
-            //check for user
+                //check for user-level access.
             } else if(currLine.equals(getMyUserName() + getMyEmail())){
                 scnr.close();
                 return true;
@@ -57,7 +54,7 @@ public class UserInfo implements Serializable {
     /**
      * @author James Sherwood
      * Method: Create new text file "export" and copy contents of SavedUsers.txt
-     * @throws IOException
+     * @throws IOException FileNotFound or Unavailable for action
      */
     public void export() throws IOException {
 

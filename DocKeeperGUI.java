@@ -10,20 +10,34 @@ import java.util.Objects;
 
 public class DocKeeperGUI extends JFrame {
     UserInfo u;
+    LoginFrame lf;
     String myFilePath = ".";
     JFrame myFrame;
-    JPanel homePanel, loginPanel, aboutPanel, buttonPanel, filePanel, myCurrPanel;
-    JButton homeBtn, loginBtn, aboutBtn, filesBtn, submitBtn, uploadBtn, deleteBtn, exportBtn, importBtn;
+    JPanel homePanel, aboutPanel, buttonPanel, filePanel, myCurrPanel;
+    JButton homeBtn, loginBtn, aboutBtn, filesBtn, uploadBtn, deleteBtn, exportBtn, importBtn, addTagBtn, searchBtn;
     JFileChooser fc = new JFileChooser(myFilePath);
+
 
     /**
      * @author James Sherwood
      * Structures the GUI frame
      */
     public DocKeeperGUI() throws IOException {
+
+        //initialize access-sensitive components.
+        uploadBtn = new JButton("Upload");
+        deleteBtn = new JButton("Delete");
+        exportBtn = new JButton("Export");
+        importBtn = new JButton("Import");
+        addTagBtn = new JButton("Add Tag");
+        searchBtn = new JButton("Search");
+
         //initialize frame
         myFrame = new JFrame("DocKeeper");
-        myFrame.setSize(500,500);
+        myFrame.setSize(500, 500);
+        //change default App logo
+        ImageIcon icon = new ImageIcon("./src/logo.PNG");
+        myFrame.setIconImage(icon.getImage());
 
         myFrame.setLayout(new GridBagLayout());
         myFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -31,7 +45,6 @@ public class DocKeeperGUI extends JFrame {
         //initialize panels
         homePanel = myHomePanel();
         aboutPanel = myAboutPanel();
-        loginPanel = myLogInPanel();
         filePanel = myFilePanel();
 
         //initialize buttons
@@ -43,14 +56,14 @@ public class DocKeeperGUI extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
+
         loginBtn = new JButton("Log In");
-        loginBtn.addActionListener(e -> {
-            try {
-                changePanel(e);
-            } catch (FileNotFoundException ex) {
-                throw new RuntimeException(ex);
-            }
-        });
+        loginBtn.addActionListener(e -> EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {lf = new LoginFrame();}
+
+        })); //end invokeLater for Login page);
+
         aboutBtn = new JButton("About");
         aboutBtn.addActionListener(e -> {
             try {
@@ -74,7 +87,6 @@ public class DocKeeperGUI extends JFrame {
         buttonPanel.add(homeBtn);
         buttonPanel.add(loginBtn);
         buttonPanel.add(aboutBtn);
-
         buttonPanel.add(filesBtn);
 
         myCurrPanel = homePanel;
@@ -94,7 +106,8 @@ public class DocKeeperGUI extends JFrame {
 
     /**
      * @author James Sherwood
-     * @return  home panel
+     * Method: Structure "home" panel.
+     * @return home panel
      * @throws IOException if image not found.
      */
     private JPanel myHomePanel() throws IOException {
@@ -109,116 +122,18 @@ public class DocKeeperGUI extends JFrame {
         myImage = myImage.getScaledInstance(475, 400, java.awt.Image.SCALE_SMOOTH);
         ImageIcon myImageIcon = new ImageIcon(myImage);
         picLabel = new JLabel(myImageIcon);
-        picLabel.setBounds(1,1,485,400);
+        picLabel.setBounds(1, 1, 485, 400);
         myPanel.add(picLabel);
 
         return myPanel;
     }
 
-
     /**
      * @author James Sherwood
-     * @return login panel
-     */
-    private JPanel myLogInPanel(){
-        final int PADDING = 30;
-        JPanel myPanel, welcomePanel, formPanel, btnPanel;
-        JLabel myUserName, myEmail, welcomeMessage;
-        JTextField myNameText;
-        JTextField emailField;
-
-        //change welcome message based on log-in
-        welcomePanel = new JPanel(new FlowLayout(FlowLayout.CENTER,PADDING,PADDING));
-        if(u.getIsUser()){
-            welcomeMessage = new JLabel("Welcome, " + u.getMyUserName());
-        } else{
-            welcomeMessage = new JLabel("Welcome. Please Login.");
-        }
-        welcomePanel.add(welcomeMessage);
-
-        formPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-
-        myUserName = new JLabel("Name: ");
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy =0;
-        c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(0,20,0,0);
-        formPanel.add(myUserName, c);
-
-        myEmail = new JLabel("Email: ");
-        c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        c.gridy= 1;
-        c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(0,20,0,0);
-        formPanel.add(myEmail,c);
-
-        myNameText = new JTextField(50);
-        c = new GridBagConstraints();
-        c.gridx = 1;
-        c.gridy = 0;
-        c.weightx = 0.1;
-        c.ipadx = 200;
-        formPanel.add(myNameText, c);
-
-        emailField = new JTextField(150);
-        c = new GridBagConstraints();
-        c.gridx = 1;
-        c.gridy = 1;
-        c.weightx = 0.001;
-        c.ipadx = 200;
-        formPanel.add(emailField,c);
-
-        btnPanel = new JPanel();
-        btnPanel.setLayout(new FlowLayout(FlowLayout.CENTER,PADDING,PADDING));
-
-        submitBtn = new JButton("Submit");
-        submitBtn.addActionListener(e -> {
-            String s1 = myNameText.getText();
-            String s2 = String.valueOf(emailField.getText());
-            try {
-                u = new UserInfo(s1,s2);
-                if(u.getIsUser()){
-                    //reload page
-                    changePanel(e);
-                }
-            } catch (FileNotFoundException ex) {
-                throw new RuntimeException(ex);
-            }
-            if (u.getIsAdmin()){
-                uploadBtn.setEnabled(true);
-                deleteBtn.setEnabled(true);
-                exportBtn.setEnabled(true);
-                importBtn.setEnabled(true);
-            }
-            myNameText.setText("");
-            emailField.setText("");
-        });
-        btnPanel.add(submitBtn);
-
-        myPanel = new JPanel(new BorderLayout());
-        myPanel.setPreferredSize(new Dimension(400,400));
-
-        //hide formPanel after user has signed in
-        if(!u.getIsUser()){
-            myPanel.add(welcomePanel,BorderLayout.NORTH);
-            myPanel.add(formPanel, BorderLayout.CENTER);
-            myPanel.add(btnPanel, BorderLayout.SOUTH);
-        } else {
-            myPanel.add(welcomePanel, BorderLayout.CENTER);
-            myPanel.add(btnPanel, BorderLayout.SOUTH);
-        }
-        return myPanel;
-    }
-
-    /**
-     * @author James Sherwood
+     * Method: Structure "about" panel.
      * @return about panel
      */
-    private JPanel myAboutPanel(){
+    private JPanel myAboutPanel() {
         JPanel versionPanel, registrationPanel, devPanel;
         JPanel mainPanel = new JPanel();
         JLabel versionLabel, groupLabel, devLabel, devName1, introLabel;
@@ -226,9 +141,9 @@ public class DocKeeperGUI extends JFrame {
         versionPanel = new JPanel(new BorderLayout());
 
         //Change display when logged in.
-        if(u != null && u.getMyUserName() != null){
+        if (u != null && u.getMyUserName() != null) {
             introLabel = new JLabel("This app is registered to: " + u.getMyUserName());
-        } else{
+        } else {
             u = new UserInfo();
             introLabel = new JLabel("This app is not yet registered.");
         }
@@ -248,9 +163,9 @@ public class DocKeeperGUI extends JFrame {
         devLabel = new JLabel("Developers: ");
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
-        c.gridy =0;
+        c.gridy = 0;
         c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(0,20,0,0);
+        c.insets = new Insets(0, 20, 0, 0);
         devPanel.add(devLabel, c);
 
         devName1 = new JLabel("1. James Sherwood");
@@ -262,7 +177,7 @@ public class DocKeeperGUI extends JFrame {
         devPanel.add(devName1, c);
 
         mainPanel.setLayout(new BorderLayout());
-        mainPanel.setPreferredSize(new Dimension(400,400));
+        mainPanel.setPreferredSize(new Dimension(400, 400));
         mainPanel.add(versionPanel, BorderLayout.NORTH);
         mainPanel.add(devPanel, BorderLayout.CENTER);
         mainPanel.add(registrationPanel, BorderLayout.SOUTH);
@@ -272,6 +187,7 @@ public class DocKeeperGUI extends JFrame {
 
     /**
      * @author James Sherwood
+     * Method: Structure File Panel
      * @return filePanel
      * @throws FileNotFoundException for file masterList.
      */
@@ -284,26 +200,23 @@ public class DocKeeperGUI extends JFrame {
         JPanel mainPanel = new JPanel(new GridBagLayout());
 
         //initialize List Model
-        for(int i = 0; i < fl.display().length; i++){
+        for (int i = 0; i < fl.display().length; i++) {
             dlm.addElement(fl.myFiles[i]);
         }
 
-        mainPanel.setPreferredSize(new Dimension(400,400));
+        mainPanel.setPreferredSize(new Dimension(400, 400));
         GridBagConstraints c = new GridBagConstraints();
 
         //Scrollpane to display file names.
         JScrollPane fileNames = new JScrollPane(fileDisplay);
-        fileNames.setPreferredSize(new Dimension(200,200));
+        fileNames.setPreferredSize(new Dimension(200, 200));
         c.gridx = 0;
         c.gridy = 1;
-        mainPanel.add(fileNames,c);
-
-        uploadBtn = new JButton("New File");
-        uploadBtn.setEnabled(false);
+        mainPanel.add(fileNames, c);
 
         uploadBtn.addActionListener(e -> {
             var response = fc.showOpenDialog(null);
-            if (response == JOptionPane.OK_OPTION){
+            if (response == JOptionPane.OK_OPTION) {
                 myFilePath = fc.getSelectedFile().getAbsolutePath();
                 try {
                     fl.addToFileList(myFilePath);
@@ -314,8 +227,6 @@ public class DocKeeperGUI extends JFrame {
             }
         });
 
-        deleteBtn = new JButton("Delete");
-        deleteBtn.setEnabled(false);
         deleteBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -330,8 +241,6 @@ public class DocKeeperGUI extends JFrame {
             }
         });
 
-        exportBtn = new JButton("Export");
-        exportBtn.setEnabled(false);
         exportBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -343,8 +252,7 @@ public class DocKeeperGUI extends JFrame {
             }
         });
 
-        importBtn = new JButton("Import");
-        importBtn.setEnabled(false);
+
         importBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -356,39 +264,132 @@ public class DocKeeperGUI extends JFrame {
             }
         });
 
-        JPanel fileBtnPanel = new JPanel();
-        fileBtnPanel.add(uploadBtn);
-        fileBtnPanel.add(deleteBtn);
-        fileBtnPanel.add(exportBtn);
-        fileBtnPanel.add(importBtn);
+        addTagBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int index = fileDisplay.getSelectedIndex();
+                String str = (String.valueOf(dlm.get(index)));
+                try {
+                    fl.addTag(str, chooseFromList(fl));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+
+
+
+        searchBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                        String[] matchedFiles = fl.search(chooseFromList(fl));
+                        if(matchedFiles.length >0) {
+                            dlm.removeAllElements();
+                            for (int i = 0; i < fl.display().length; i++) {
+                                for (int j = 0; j < matchedFiles.length; j++) {
+                                    if (fl.myFiles[i].equals(matchedFiles[j])) {
+                                        dlm.addElement(fl.myFiles[i]);
+                                    }
+                                }
+                            }
+                        } else{
+                            JOptionPane.showMessageDialog(null,"No Files Found With Matching Tags");
+                        }
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+            }
+        });
+
+
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+
+
+
+
+        JPanel btn1 = new JPanel();
+        JPanel btn2 = new JPanel();
+        btn1.add(uploadBtn);
+        btn1.add(exportBtn);
+        btn1.add(importBtn);
+        btn2.add(addTagBtn);
+        btn2.add(searchBtn);
+        btn2.add(deleteBtn);
+        buttonPanel.add(btn1);
+        buttonPanel.add(btn2, BorderLayout.SOUTH);
         c.gridx = GridBagConstraints.RELATIVE;
-        c.gridy =GridBagConstraints.SOUTH;
-        mainPanel.add(fileBtnPanel, c);
+        c.gridy = GridBagConstraints.SOUTH;
+        mainPanel.add(buttonPanel, c);
 
         return mainPanel;
     }
 
     /**
      * @author James Sherwood
-     * Change display to user's selected panel.
+     * Method: Helper method, structures tag options for pop-up combo box.
+     * @param fl FileList object to access available tags.
+     * @return Selected tag from list.
+     */
+    private String chooseFromList(FileList fl) {
+        String choice = null;
+        JPanel pnl = new JPanel();
+        DefaultComboBoxModel<String> tags = new DefaultComboBoxModel<>();
+        for(String s: fl.tags){
+            tags.addElement(s);
+        }
+        JComboBox<String> box = new JComboBox<>(tags);
+        pnl.add(box);
+        int iResult = JOptionPane.showConfirmDialog(null, pnl, "Tags", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (iResult == JOptionPane.OK_OPTION) {
+            choice = (String) box.getSelectedItem();
+        }
+        return choice;
+    }
+
+    /**
+     * @author James Sherwood
+     * Method: Change display to user's selected panel.
      * @param e input from button press.
      */
-      private void changePanel(ActionEvent e) throws FileNotFoundException {
-        if(e.getSource() == homeBtn){
+    private void changePanel(ActionEvent e) throws FileNotFoundException {
+        if (e.getSource() == homeBtn || e.getSource() == loginBtn) {
             constraints(homePanel);
-        }else if(e.getSource() == loginBtn || e.getSource() == submitBtn){
-            constraints(myLogInPanel());
-        } else if(e.getSource() == filesBtn){
-            constraints(filePanel);
         }
-        else{
+        else if (e.getSource() == filesBtn) {
+            constraints(filePanel);
+            if(lf == null) {
+                uploadBtn.setEnabled(false);
+                deleteBtn.setEnabled(false);
+                exportBtn.setEnabled(false);
+                importBtn.setEnabled(false);
+                addTagBtn.setEnabled(false);
+                searchBtn.setEnabled(false);
+            } else if(lf.getIsAdmin()){
+                uploadBtn.setEnabled(true);
+                deleteBtn.setEnabled(true);
+                exportBtn.setEnabled(true);
+                importBtn.setEnabled(true);
+                addTagBtn.setEnabled(true);
+                searchBtn.setEnabled(true);
+            } else{
+                uploadBtn.setEnabled(false);
+                deleteBtn.setEnabled(false);
+                exportBtn.setEnabled(false);
+                importBtn.setEnabled(false);
+                addTagBtn.setEnabled(false);
+                searchBtn.setEnabled(true);
+            }
+            System.out.println(lf.getIsAdmin());
+            System.out.println(lf.getIsUser());
+        } else {
             constraints(aboutPanel);
         }
     }
 
     /**
      * @author James Sherwood
-     * constraints used when changing panels.
+     * Method: Helper method, constraints used when changing panels.
      * @param homePanel default grid constraints.
      */
     private void constraints(JPanel homePanel) {
@@ -411,11 +412,12 @@ public class DocKeeperGUI extends JFrame {
     }
 
     /**
+     * @param args default
      * @author James Sherwood
      * Driver program
-     * @param args default
      */
     public static void main(String[] args) throws IOException {
         new DocKeeperGUI();
     }
+
 }
